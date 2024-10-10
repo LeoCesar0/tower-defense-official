@@ -18,10 +18,13 @@ public class PlayerMovement : MonoBehaviour
 
     private PlayerStateController playerState;
 
+    private SpriteRenderer sprite;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         playerState = GetComponent<PlayerStateController>();
+        sprite = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -36,9 +39,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (playerState.isDashing) return; // Skip regular movement if player is dashing
 
-        float moveX = Input.GetAxis("Horizontal");
+        float moveX = Input.GetAxisRaw("Horizontal");
         if (moveX != 0 && playerState.isGrounded)
         {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * moveX, transform.localScale.y, transform.localScale.z);
             playerState.SetWalking(true);
         }
         else
@@ -47,6 +51,7 @@ public class PlayerMovement : MonoBehaviour
         }
         rb.velocity = new Vector2(moveX * moveSpeed, rb.velocity.y);
     }
+
 
     // Function to handle jumping with more control over height
     void HandleJump()

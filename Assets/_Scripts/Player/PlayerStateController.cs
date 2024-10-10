@@ -32,7 +32,6 @@ public class PlayerStateController : MonoBehaviour
         HandleFalling();
         HandleGrounded();
         HandleIdle();
-
     }
 
     // COLLISIONS
