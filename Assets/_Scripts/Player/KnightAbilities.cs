@@ -25,7 +25,7 @@ public class KnightAbilities : MonoBehaviour
     
     // Private variables
     private PlayerController playerController;
-    private PlayerStateController stateController;
+    private PlayerStateMachine stateMachine;
     private AudioSource audioSource;
     
     // Cooldown tracking
@@ -44,7 +44,7 @@ public class KnightAbilities : MonoBehaviour
     void Start()
     {
         playerController = GetComponent<PlayerController>();
-        stateController = GetComponent<PlayerStateController>();
+        stateMachine = GetComponent<PlayerStateMachine>();
         audioSource = GetComponent<AudioSource>();
         
         // Store original armor value
@@ -82,14 +82,14 @@ public class KnightAbilities : MonoBehaviour
     bool CanUseShieldBash()
     {
         return Time.time >= lastShieldBashTime + shieldBashCooldown &&
-               !stateController.isAttacking &&
-               !stateController.isDead;
+               !(stateMachine.GetCurrentState() is AttackingState) &&
+               !(stateMachine.GetCurrentState() is DeadState);
     }
     
     void UseShieldBash()
     {
         lastShieldBashTime = Time.time;
-        stateController.SetAttacking(true);
+        stateMachine.TryTransitionToAttacking();
         
         // Play sound
         if (shieldBashSound && audioSource)
@@ -134,7 +134,7 @@ public class KnightAbilities : MonoBehaviour
         }
         
         yield return new WaitForSeconds(0.2f);
-        stateController.SetAttacking(false);
+        stateMachine.TryTransitionToIdle();
     }
     
     // Defensive Stance Ability
@@ -142,7 +142,7 @@ public class KnightAbilities : MonoBehaviour
     {
         return Time.time >= lastDefensiveStanceTime + defensiveStanceCooldown &&
                !isDefensiveStanceActive &&
-               !stateController.isDead;
+               !(stateMachine.GetCurrentState() is DeadState);
     }
     
     void UseDefensiveStance()
@@ -190,14 +190,14 @@ public class KnightAbilities : MonoBehaviour
     bool CanUseWhirlwind()
     {
         return Time.time >= lastWhirlwindTime + whirlwindCooldown &&
-               !stateController.isAttacking &&
-               !stateController.isDead;
+               !(stateMachine.GetCurrentState() is AttackingState) &&
+               !(stateMachine.GetCurrentState() is DeadState);
     }
     
     void UseWhirlwind()
     {
         lastWhirlwindTime = Time.time;
-        stateController.SetAttacking(true);
+        stateMachine.TryTransitionToAttacking();
         
         // Play sound
         if (whirlwindSound && audioSource)
@@ -237,7 +237,7 @@ public class KnightAbilities : MonoBehaviour
         }
         
         yield return new WaitForSeconds(0.2f);
-        stateController.SetAttacking(false);
+        stateMachine.TryTransitionToIdle();
     }
     
     // Public getters for UI

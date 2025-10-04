@@ -21,7 +21,7 @@ public class PlayerHealth : MonoBehaviour
     
     // Private variables
     private PlayerStats stats;
-    private PlayerStateController stateController;
+    private PlayerStateMachine stateMachine;
     private AudioSource audioSource;
     private float lastDamageTime;
     private bool isInvulnerable = false;
@@ -35,7 +35,7 @@ public class PlayerHealth : MonoBehaviour
     void Start()
     {
         stats = GetComponent<PlayerStats>();
-        stateController = GetComponent<PlayerStateController>();
+        stateMachine = GetComponent<PlayerStateMachine>();
         audioSource = GetComponent<AudioSource>();
         
         // Initialize health from stats if available
@@ -160,7 +160,7 @@ public class PlayerHealth : MonoBehaviour
         
         isDead = true;
         currentHealth = 0;
-        stateController.SetDead(true);
+        stateMachine.TryTransitionToDead();
         
         // Play death effects
         if (deathSound && audioSource)
@@ -235,7 +235,7 @@ public class PlayerHealth : MonoBehaviour
             stats.hp = currentHealth;
         }
         
-        stateController.SetDead(false);
+        // State will be managed by the state machine
         
         // Re-enable player controls
         GetComponent<PlayerMovement>().enabled = true;

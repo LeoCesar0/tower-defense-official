@@ -18,7 +18,7 @@ public class PlayerAttack : MonoBehaviour
     
     // Private variables
     private PlayerStats stats;
-    private PlayerStateController stateController;
+    private PlayerStateMachine stateMachine;
     private AudioSource audioSource;
     private float lastAttackTime;
     private int currentCombo = 0;
@@ -35,7 +35,7 @@ public class PlayerAttack : MonoBehaviour
     void Start()
     {
         stats = GetComponent<PlayerStats>();
-        stateController = GetComponent<PlayerStateController>();
+        stateMachine = GetComponent<PlayerStateMachine>();
         audioSource = GetComponent<AudioSource>();
         
         if (attackPoint == null)
@@ -71,8 +71,8 @@ public class PlayerAttack : MonoBehaviour
     
     bool CanAttack()
     {
-        return !stateController.isAttacking && 
-               !stateController.isDead && 
+        return !(stateMachine.GetCurrentState() is AttackingState) && 
+               !(stateMachine.GetCurrentState() is DeadState) && 
                Time.time >= lastAttackTime + attackCooldown;
     }
     
@@ -80,21 +80,21 @@ public class PlayerAttack : MonoBehaviour
     void PerformAttack(AttackType attackType)
     {
         lastAttackTime = Time.time;
-        stateController.SetAttacking(true);
+        stateMachine.TryTransitionToAttacking();
         
         // Set specific attack animation
         switch (attackType)
         {
             case AttackType.LightAttack:
-                stateController.SetAttack1(true);
+                stateMachine.GetAnimator()?.SetBool("attack1", true);
                 StartCoroutine(ExecuteAttack(attackType, 0.2f));
                 break;
             case AttackType.HeavyAttack:
-                stateController.SetAttack2(true);
+                stateMachine.GetAnimator()?.SetBool("attack2", true);
                 StartCoroutine(ExecuteAttack(attackType, 0.4f));
                 break;
             case AttackType.SpecialAttack:
-                stateController.SetAttack1(true);
+                stateMachine.GetAnimator()?.SetBool("attack1", true);
                 StartCoroutine(ExecuteAttack(attackType, 0.6f));
                 break;
         }
@@ -134,9 +134,9 @@ public class PlayerAttack : MonoBehaviour
         
         // Reset attack state
         yield return new WaitForSeconds(0.1f);
-        stateController.SetAttacking(false);
-        stateController.SetAttack1(false);
-        stateController.SetAttack2(false);
+        stateMachine.GetAnimator()?.SetBool("attack1", false);
+        stateMachine.GetAnimator()?.SetBool("attack2", false);
+        stateMachine.TryTransitionToIdle();
     }
     
     float CalculateDamage(AttackType attackType)
@@ -217,6 +217,6 @@ public class PlayerAttack : MonoBehaviour
     
     public bool IsAttacking()
     {
-        return stateController.isAttacking;
+        return stateMachine.GetCurrentState() is AttackingState;
     }
 }

@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     
     // Component references
     private PlayerStats stats;
-    private PlayerStateController stateController;
+    private PlayerStateMachine stateMachine;
     private PlayerMovement movement;
     private PlayerAttack attack;
     private PlayerHealth health;
@@ -30,7 +30,7 @@ public class PlayerController : MonoBehaviour
     void InitializePlayer()
     {
         // Get or add required components
-        stateController = GetComponent<PlayerStateController>();
+        stateMachine = GetComponent<PlayerStateMachine>();
         movement = GetComponent<PlayerMovement>();
         attack = GetComponent<PlayerAttack>();
         health = GetComponent<PlayerHealth>();
