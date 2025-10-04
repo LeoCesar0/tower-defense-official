@@ -1,0 +1,45 @@
+# About the Project
+
+This is a Unity 2D Tower Defense game inspired by Kingdom Two Crowns, League of Legends's champions, RPG features and Dark Fantasy.
+Help me create a great and solid base and new features.
+
+# Ideas
+
+- The game should have a Player
+- The player should have a Class, for the start of this projects, let's have only the Knight
+- 2 Enemies for now, Zombie and Skeleton
+- Enemy hordes system
+- Player RPG like stats with Level progress
+- Knight should be a skilled fighter
+- Player needs to defend the crystal in the middle of the map
+
+# Current Goal
+
+Let's progressively create
+
+- Player base scripts
+- Player movement scripts
+- Player attack scripts
+- Enemies base scripts
+- Enemies base AI
+
+# Extra
+
+Let's create it easy to scale. We should easily change the agents data and stats.
+I'm interested into learning game development and game dev patterns.
+
+# RPG System
+
+No complex RPG system such as strength, dex, intelligence etc.
+No mana for now.
+
+We should have:
+
+- Attack Damage (physical damage)
+- Magic Damage (magic damage)
+- Attack Speed
+- Physical Armor
+- Magic Armor
+- Critical chance
+
+We should be able to have weapons and items to improve those stats
