@@ -85,10 +85,10 @@ public class Player : MonoBehaviour
     {
         if (playerCharacter)
         {
-            playerCharacter.OnHealthChanged += OnHealthChanged;
-            playerCharacter.OnCharacterDeath += OnPlayerDeath;
+            playerCharacter.OnHealthChanged += HandleHealthChanged;
+            playerCharacter.OnCharacterDeath += HandlePlayerDeath;
             playerCharacter.OnStatsChanged += OnStatsChanged;
-            playerCharacter.OnStateChanged += OnStateChanged;
+            playerCharacter.OnStateChanged += HandleStateChanged;
         }
     }
     
@@ -136,18 +136,18 @@ public class Player : MonoBehaviour
     }
     
     // Event handlers
-    void OnHealthChanged(int current, int max)
+    void HandleHealthChanged(int current, int max)
     {
         OnHealthChanged?.Invoke(current, max);
     }
     
-    void OnPlayerDeath()
+    void HandlePlayerDeath()
     {
         Debug.Log("Player has died!");
         OnPlayerDeath?.Invoke();
     }
     
-    void OnStateChanged(CharacterState newState)
+    void HandleStateChanged(CharacterState newState)
     {
         OnStateChanged?.Invoke(newState);
     }
@@ -157,10 +157,10 @@ public class Player : MonoBehaviour
         // Clean up event listeners
         if (playerCharacter)
         {
-            playerCharacter.OnHealthChanged -= OnHealthChanged;
-            playerCharacter.OnCharacterDeath -= OnPlayerDeath;
+            playerCharacter.OnHealthChanged -= HandleHealthChanged;
+            playerCharacter.OnCharacterDeath -= HandlePlayerDeath;
             playerCharacter.OnStatsChanged -= OnStatsChanged;
-            playerCharacter.OnStateChanged -= OnStateChanged;
+            playerCharacter.OnStateChanged -= HandleStateChanged;
         }
     }
     

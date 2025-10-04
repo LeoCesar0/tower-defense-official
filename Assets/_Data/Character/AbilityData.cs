@@ -29,98 +29,28 @@ public class AbilityData : ScriptableObject
     public string animationTrigger;
     public float animationDuration = 0.5f;
     
-    [Header("Special Properties")]
-    public bool hasKnockback = false;
-    public float knockbackForce = 0f;
-    public bool isAreaOfEffect = false;
-    public float aoeRadius = 0f;
+    [Header("Buff/Debuff")]
     public bool appliesBuff = false;
     public BuffData buffData;
     
-    /// <summary>
-    /// Check if a character can use this ability
-    /// </summary>
-    public bool CanCharacterUse(CharacterClass characterClass, int currentMana)
-    {
-        if (requiredClass != CharacterClass.None && requiredClass != characterClass)
-            return false;
-            
-        if (manaCost > currentMana)
-            return false;
-            
-        return true;
-    }
-}
-
-/// <summary>
-/// Types of abilities
-/// </summary>
-public enum AbilityType
-{
-    Attack,
-    Buff,
-    Debuff,
-    Movement,
-    Defensive,
-    Ultimate
-}
-
-/// <summary>
-/// ScriptableObject for buff/debuff data
-/// </summary>
-[CreateAssetMenu(fileName = "New Buff Data", menuName = "Character/Buff Data")]
-public class BuffData : ScriptableObject
-{
-    [Header("Basic Info")]
-    public string buffName;
-    public string description;
-    public BuffType buffType;
-    
-    [Header("Buff Settings")]
-    public float duration = 5f;
-    public bool isStackable = false;
-    public int maxStacks = 1;
-    
-    [Header("Stat Modifications")]
-    public float attackDamageModifier = 0f;
-    public float magicDamageModifier = 0f;
-    public float attackSpeedModifier = 0f;
-    public int physicalArmorModifier = 0;
-    public int magicArmorModifier = 0;
-    public float moveSpeedModifier = 0f;
-    public float criticalChanceModifier = 0f;
-    
-    [Header("Effects")]
-    public GameObject buffEffect;
-    public AudioClip buffSound;
-    public Color buffColor = Color.white;
+    [Header("Targeting")]
+    public bool requiresTarget = false;
+    public bool isAreaOfEffect = false;
+    public float aoeRadius = 0f;
     
     /// <summary>
-    /// Apply this buff to character stats
+    /// Check if this ability can be used by the given character
     /// </summary>
-    public CharacterStats ApplyBuff(CharacterStats baseStats, int stackCount = 1)
+    public bool CanBeUsedBy(CharacterClass characterClass)
     {
-        var modifiedStats = baseStats;
-        float multiplier = isStackable ? stackCount : 1f;
-        
-        modifiedStats.attackDamage += attackDamageModifier * multiplier;
-        modifiedStats.magicDamage += magicDamageModifier * multiplier;
-        modifiedStats.attackSpeed += attackSpeedModifier * multiplier;
-        modifiedStats.physicalArmor += Mathf.RoundToInt(physicalArmorModifier * multiplier);
-        modifiedStats.magicArmor += Mathf.RoundToInt(magicArmorModifier * multiplier);
-        modifiedStats.moveSpeed += moveSpeedModifier * multiplier;
-        modifiedStats.criticalChance += criticalChanceModifier * multiplier;
-        
-        return modifiedStats;
+        return requiredClass == CharacterClass.None || requiredClass == characterClass;
     }
-}
-
-/// <summary>
-/// Types of buffs
-/// </summary>
-public enum BuffType
-{
-    Buff,
-    Debuff,
-    Temporary
+    
+    /// <summary>
+    /// Get the effective damage for this ability
+    /// </summary>
+    public float GetEffectiveDamage(float characterDamage)
+    {
+        return damage > 0 ? damage : characterDamage;
+    }
 }

@@ -30,72 +30,30 @@ public class EquipmentData : ScriptableObject
     public AudioClip equipSound;
     public AudioClip unequipSound;
     
+    [Header("Economy")]
+    public int goldCost = 100;
+    public bool isSellable = true;
+    public int sellValue = 50;
+    
     /// <summary>
-    /// Check if a character can equip this item
+    /// Check if this equipment can be used by the given character
     /// </summary>
-    public bool CanCharacterEquip(CharacterClass characterClass, int characterLevel)
+    public bool CanBeUsedBy(CharacterClass characterClass, int characterLevel)
     {
         if (requiredClass != CharacterClass.None && requiredClass != characterClass)
             return false;
-            
-        if (requiredLevel > characterLevel)
+        
+        if (characterLevel < requiredLevel)
             return false;
-            
+        
         return true;
     }
-}
-
-/// <summary>
-/// Types of equipment
-/// </summary>
-public enum EquipmentType
-{
-    Weapon,
-    Armor,
-    Accessory,
-    Consumable
-}
-
-/// <summary>
-/// Equipment slots
-/// </summary>
-public enum EquipmentSlot
-{
-    Weapon,
-    Helmet,
-    Chest,
-    Legs,
-    Boots,
-    Gloves,
-    Ring,
-    Necklace,
-    Consumable
-}
-
-/// <summary>
-/// Equipment set data for set bonuses
-/// </summary>
-[CreateAssetMenu(fileName = "New Equipment Set", menuName = "Character/Equipment Set")]
-public class EquipmentSetData : ScriptableObject
-{
-    [Header("Set Info")]
-    public string setName;
-    public string description;
-    
-    [Header("Set Pieces")]
-    public EquipmentData[] setPieces;
-    
-    [Header("Set Bonuses")]
-    public EquipmentBonus[] setBonuses; // Index corresponds to number of pieces equipped
     
     /// <summary>
-    /// Get the bonus for having a certain number of set pieces equipped
+    /// Get the effective sell value
     /// </summary>
-    public EquipmentBonus GetSetBonus(int equippedPieces)
+    public int GetSellValue()
     {
-        if (equippedPieces <= 0 || equippedPieces > setBonuses.Length)
-            return new EquipmentBonus();
-            
-        return setBonuses[equippedPieces - 1];
+        return isSellable ? sellValue : 0;
     }
 }

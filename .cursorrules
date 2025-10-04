@@ -43,3 +43,9 @@ We should have:
 - Critical chance
 
 We should be able to have weapons and items to improve those stats
+
+
+# Folders and Pattern
+
+Try to add only one top level class, struct, interface etc per file.
+Create folders to store related classes, add 1 per file.
