@@ -187,7 +187,7 @@ public class PlayerCharacter : BaseCharacter, IControllable
             var damageable = target.GetComponent<IDamageable>();
             if (damageable != null && damageable != this)
             {
-                Attack(damable);
+                Attack(damageable);
             }
         }
     }
@@ -244,7 +244,7 @@ public class PlayerCharacter : BaseCharacter, IControllable
         if (ability == null || isDead) return false;
         
         // Check class requirement
-        if (ability.requiredClass != CharacterClass.None && ability.requiredClass != GetCharacterClass())
+        if (ability.requiredClass != GetCharacterClass())
             return false;
         
         // Check mana cost
