@@ -111,9 +111,12 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
         characterPreset = preset;
         currentStats = preset.characterData.ToCharacterStats();
         
+        Debug.Log($"[INIT] Initializing {preset.characterType} {gameObject.name} with preset '{preset.presetName}' (HP: {currentStats.hp}/{currentStats.maxHp}, Level: {currentStats.level})");
+        
         // Apply starting equipment
-        if (preset.startingEquipment != null)
+        if (preset.startingEquipment != null && preset.startingEquipment.Length > 0)
         {
+            Debug.Log($"[INIT] {gameObject.name} equipping {preset.startingEquipment.Length} starting equipment item(s)");
             foreach (var equipment in preset.startingEquipment)
             {
                 EquipItem(equipment);
@@ -122,6 +125,11 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
         
         // Initialize abilities
         InitializeAbilities(preset.abilities);
+        
+        if (preset.abilities != null && preset.abilities.Length > 0)
+        {
+            Debug.Log($"[INIT] {gameObject.name} initialized with {preset.abilities.Length} ability/abilities");
+        }
         
         OnStatsChanged?.Invoke(currentStats);
     }
@@ -143,9 +151,13 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
         if (isDead || isInvulnerable) return;
         
         float actualDamage = CalculateDamage(damage, damageType);
-        currentStats.hp = Mathf.Max(0, currentStats.hp - Mathf.RoundToInt(actualDamage));
+        int damageDealt = Mathf.RoundToInt(actualDamage);
+        int previousHp = currentStats.hp;
+        currentStats.hp = Mathf.Max(0, currentStats.hp - damageDealt);
         lastDamageTime = Time.time;
         isInvulnerable = true;
+        
+        Debug.Log($"[DAMAGE] {gameObject.name} took {damageDealt} {damageType} damage (Base: {damage:F1}, HP: {previousHp} → {currentStats.hp})");
         
         OnHealthChanged?.Invoke(currentStats.hp, currentStats.maxHp);
         
@@ -159,7 +171,12 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     {
         if (isDead) return;
         
-        currentStats.hp = Mathf.Min(currentStats.maxHp, currentStats.hp + Mathf.RoundToInt(amount));
+        int previousHp = currentStats.hp;
+        int healAmount = Mathf.RoundToInt(amount);
+        currentStats.hp = Mathf.Min(currentStats.maxHp, currentStats.hp + healAmount);
+        
+        Debug.Log($"[HEAL] {gameObject.name} healed for {healAmount} HP (HP: {previousHp} → {currentStats.hp}/{currentStats.maxHp})");
+        
         OnHealthChanged?.Invoke(currentStats.hp, currentStats.maxHp);
     }
     
@@ -173,6 +190,10 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
         isDead = true;
         currentStats.hp = 0;
         ChangeState(CharacterState.Dead);
+        
+        string characterType = GetCharacterType().ToString();
+        Debug.Log($"[DEATH] {characterType} {gameObject.name} has died!");
+        
         OnCharacterDeath?.Invoke();
     }
     
@@ -211,7 +232,11 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     
     public virtual void LevelUp()
     {
+        int previousLevel = currentStats.level;
         currentStats = currentStats.LevelUp();
+        
+        Debug.Log($"[LEVEL UP] {gameObject.name} leveled up from {previousLevel} to {currentStats.level}!");
+        
         OnLevelUp();
         OnStatsChanged?.Invoke(currentStats);
     }
@@ -229,9 +254,13 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     {
         if (currentState == newState) return;
         
+        CharacterState previousState = currentState;
         OnStateExit(currentState);
         currentState = newState;
         OnStateEnter(currentState);
+        
+        Debug.Log($"[STATE] {gameObject.name} state changed: {previousState} → {newState}");
+        
         OnStateChanged?.Invoke(currentState);
     }
     
@@ -420,11 +449,13 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     protected virtual float CalculateDamage(float baseDamage, DamageType damageType)
     {
         int armor = damageType == DamageType.Physical ? currentStats.physicalArmor : currentStats.magicArmor;
-        float finalDamage = Mathf.Max(1, baseDamage - armor);
+        float damageAfterArmor = baseDamage - armor;
+        float finalDamage = Mathf.Max(1, damageAfterArmor);
         
         // Check for dodge
         if (Random.Range(0f, 1f) < currentStats.dodgeChance)
         {
+            Debug.Log($"[DODGE] {gameObject.name} dodged {baseDamage:F1} {damageType} damage!");
             finalDamage = 0;
         }
         

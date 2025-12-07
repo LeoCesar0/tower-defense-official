@@ -40,10 +40,15 @@ public class PlayerCharacter : BaseCharacter, IControllable
         base.Start();
         
         // Initialize ability system
-        if (characterPreset?.abilities != null)
+        if (characterPreset?.abilities != null && characterPreset.abilities.Length > 0)
         {
             availableAbilities = characterPreset.abilities;
             abilityCooldowns = new float[availableAbilities.Length];
+        }
+        else
+        {
+            availableAbilities = new AbilityData[0];
+            abilityCooldowns = new float[0];
         }
         
         // Initialize attack timer
@@ -183,11 +188,19 @@ public class PlayerCharacter : BaseCharacter, IControllable
         lastAttackTime = Time.time;
         attackStateStartTime = Time.time;
         
-        float damage = GetAttackDamage();
-        if (Random.Range(0f, 1f) < currentStats.criticalChance)
+        float baseDamage = GetAttackDamage();
+        bool isCritical = Random.Range(0f, 1f) < currentStats.criticalChance;
+        float damage = baseDamage;
+        
+        if (isCritical)
         {
             damage *= currentStats.criticalMultiplier;
         }
+        
+        string targetName = (target as MonoBehaviour)?.gameObject.name ?? "Unknown";
+        string critText = isCritical ? " CRITICAL!" : "";
+        
+        Debug.Log($"[ATTACK] Player {gameObject.name} attacks {targetName} for {damage:F1} damage (Base: {baseDamage:F1}){critText}");
         
         target.TakeDamage(damage, DamageType.Physical);
         
@@ -201,8 +214,8 @@ public class PlayerCharacter : BaseCharacter, IControllable
         
         ChangeState(CharacterState.Attacking);
         
-        // Find targets in range
         Collider2D[] targets = Physics2D.OverlapCircleAll(position, range);
+        int hitCount = 0;
         
         foreach (var target in targets)
         {
@@ -210,7 +223,13 @@ public class PlayerCharacter : BaseCharacter, IControllable
             if (damageable != null && damageable != this)
             {
                 Attack(damageable);
+                hitCount++;
             }
+        }
+        
+        if (hitCount > 0)
+        {
+            Debug.Log($"[ATTACK] Player {gameObject.name} area attack hit {hitCount} target(s) at range {range:F1}");
         }
     }
     
@@ -303,7 +322,10 @@ public class PlayerCharacter : BaseCharacter, IControllable
     
     public override void GainExperience(int amount)
     {
+        int previousExp = experience;
         experience += amount;
+        
+        Debug.Log($"[EXP] Player gained {amount} experience ({previousExp} → {experience}/{experienceToNextLevel})");
         
         while (experience >= experienceToNextLevel)
         {
@@ -319,14 +341,16 @@ public class PlayerCharacter : BaseCharacter, IControllable
     
     public override void OnLevelUp()
     {
+        int previousExp = experience;
         experience -= experienceToNextLevel;
-        experienceToNextLevel = Mathf.RoundToInt(experienceToNextLevel * 1.2f);
+        int newExpToNext = Mathf.RoundToInt(experienceToNextLevel * 1.2f);
         
-        // Full heal on level up
+        Debug.Log($"[LEVEL UP] Player gained level! Experience: {previousExp} → {experience}, Next level requires: {newExpToNext}");
+        
+        experienceToNextLevel = newExpToNext;
+        
         Heal(currentStats.maxHp);
         currentStats.mana = currentStats.maxMana;
-        
-        Debug.Log($"Level Up! Now level {currentStats.level}");
     }
     
     #endregion
@@ -395,6 +419,8 @@ public class PlayerCharacter : BaseCharacter, IControllable
     
     private void HandleAbilities()
     {
+        if (abilityCooldowns == null || availableAbilities == null) return;
+        
         // Update cooldowns
         for (int i = 0; i < abilityCooldowns.Length; i++)
         {

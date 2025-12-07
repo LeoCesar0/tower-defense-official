@@ -66,7 +66,19 @@ public class EnemyAI : MonoBehaviour
             return;
         }
         
+        ITargetable previousTarget = currentTarget;
         currentTarget = FindPlayerTarget();
+        
+        if (currentTarget != null && previousTarget == null)
+        {
+            string targetName = (currentTarget as MonoBehaviour)?.gameObject.name ?? "Unknown";
+            float distance = Vector3.Distance(transform.position, currentTarget.GetTargetPosition());
+            Debug.Log($"[AI] {gameObject.name} detected target: {targetName} at distance {distance:F1}");
+        }
+        else if (currentTarget == null && previousTarget != null)
+        {
+            Debug.Log($"[AI] {gameObject.name} lost target");
+        }
     }
     
     private ITargetable FindPlayerTarget()
@@ -92,6 +104,8 @@ public class EnemyAI : MonoBehaviour
         return closestPlayer;
     }
     
+    private bool wasMoving = false;
+    
     private void MoveTowardsTarget()
     {
         if (currentTarget == null) return;
@@ -103,10 +117,21 @@ public class EnemyAI : MonoBehaviour
         
         if (distance > stopDistance)
         {
+            if (!wasMoving)
+            {
+                string targetName = (currentTarget as MonoBehaviour)?.gameObject.name ?? "Unknown";
+                Debug.Log($"[AI] {gameObject.name} started chasing {targetName} (distance: {distance:F1})");
+                wasMoving = true;
+            }
             enemyCharacter.Move(new Vector2(direction.x, 0));
         }
         else
         {
+            if (wasMoving)
+            {
+                Debug.Log($"[AI] {gameObject.name} reached target, stopping (distance: {distance:F1})");
+                wasMoving = false;
+            }
             enemyCharacter.Move(Vector2.zero);
         }
     }
@@ -121,6 +146,10 @@ public class EnemyAI : MonoBehaviour
             var damageable = currentTarget as IDamageable;
             if (damageable != null)
             {
+                string targetName = (currentTarget as MonoBehaviour)?.gameObject.name ?? "Unknown";
+                float distance = Vector3.Distance(transform.position, currentTarget.GetTargetPosition());
+                Debug.Log($"[AI] {gameObject.name} attacking {targetName} at distance {distance:F1}");
+                
                 enemyCharacter.Attack(damageable);
                 lastAttackTime = Time.time;
             }

@@ -99,11 +99,19 @@ public class EnemyCharacter : BaseCharacter
         lastAttackTime = Time.time;
         attackStateStartTime = Time.time;
         
-        float damage = GetAttackDamage();
-        if (Random.Range(0f, 1f) < currentStats.criticalChance)
+        float baseDamage = GetAttackDamage();
+        bool isCritical = Random.Range(0f, 1f) < currentStats.criticalChance;
+        float damage = baseDamage;
+        
+        if (isCritical)
         {
             damage *= currentStats.criticalMultiplier;
         }
+        
+        string targetName = (target as MonoBehaviour)?.gameObject.name ?? "Unknown";
+        string critText = isCritical ? " CRITICAL!" : "";
+        
+        Debug.Log($"[ATTACK] Enemy {gameObject.name} attacks {targetName} for {damage:F1} damage (Base: {baseDamage:F1}){critText}");
         
         target.TakeDamage(damage, DamageType.Physical);
         
@@ -127,6 +135,7 @@ public class EnemyCharacter : BaseCharacter
         ChangeState(CharacterState.Attacking);
         
         Collider2D[] targets = Physics2D.OverlapCircleAll(position, range);
+        int hitCount = 0;
         
         foreach (var target in targets)
         {
@@ -137,9 +146,15 @@ public class EnemyCharacter : BaseCharacter
                 if (targetable != null && targetable.GetCharacterType() == CharacterType.Player)
                 {
                     Attack(damageable);
+                    hitCount++;
                     break;
                 }
             }
+        }
+        
+        if (hitCount > 0)
+        {
+            Debug.Log($"[ATTACK] Enemy {gameObject.name} area attack hit {hitCount} target(s) at range {range:F1}");
         }
     }
     
