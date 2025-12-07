@@ -83,8 +83,15 @@ public static class CharacterFactory
     {
         // Add basic components
         character.AddComponent<SpriteRenderer>();
-        character.AddComponent<Rigidbody2D>();
-        character.AddComponent<Collider2D>();
+        
+        Rigidbody2D rb = character.AddComponent<Rigidbody2D>();
+        rb.freezeRotation = true;
+        rb.gravityScale = 3f;
+        
+        CapsuleCollider2D collider = character.AddComponent<CapsuleCollider2D>();
+        collider.size = new Vector2(0.8f, 1.6f);
+        collider.offset = new Vector2(0f, 0.8f);
+        
         character.AddComponent<AudioSource>();
         
         // Add animator if controller is provided
@@ -103,11 +110,9 @@ public static class CharacterFactory
             case CharacterType.Enemy:
                 character.AddComponent<EnemyCharacter>();
                 break;
-            case CharacterType.NPC:
-                character.AddComponent<NPCCharacter>();
-                break;
-            case CharacterType.Boss:
-                character.AddComponent<BossCharacter>();
+            default:
+                Debug.LogWarning($"Character type {characterData.characterType} not yet implemented. Using EnemyCharacter as fallback.");
+                character.AddComponent<EnemyCharacter>();
                 break;
         }
         

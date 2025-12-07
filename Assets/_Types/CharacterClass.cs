@@ -3,6 +3,7 @@
 /// </summary>
 public enum CharacterClass
 {
+    None,
     Knight,
     // Mage,
     // Archer,

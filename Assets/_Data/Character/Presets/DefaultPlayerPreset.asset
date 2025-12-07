@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 920ddc1e85dfe7e478bf2e912cefd352, type: 3}
+  m_Name: DefaultPlayerPreset
+  m_EditorClassIdentifier: 
+  presetName: Default Player
+  description: Default player character preset
+  characterType: 0
+  characterClass: 1
+  characterData: {fileID: 11400000, guid: 80938b26906c98144acd487dd82b276f, type: 2}
+  abilities: []
+  startingEquipment: []
+  aiData:
+    behaviorType: 0
+    detectionRange: 0
+    attackRange: 0
+    moveSpeed: 0
+    canAttack: 0
+    attackCooldown: 0
+    canUseAbilities: 0
+    abilityIndices: 
+    canPatrol: 0
+    patrolPoints: []
+    patrolWaitTime: 0
+    canChase: 0
+    chaseRange: 0
+    isAggressive: 0
+    aggroRange: 0
+    aggroDuration: 0
+    canLoseAggro: 0
+  characterPrefab: {fileID: 0}

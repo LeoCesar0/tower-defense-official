@@ -121,14 +121,3 @@ public enum AIBehaviorType
     Guard,
     Boss
 }
-
-/// <summary>
-/// Main character interface that combines all character behaviors
-/// </summary>
-public interface ICharacter : IDamageable, IAttacker, IMovable, IAbilityUser, IStatHolder, ITargetable, IBuffable, IEquippable, ILevelable, IStateful, IAnimatable
-{
-    void InitializeFromPreset(CharacterPreset preset);
-    CharacterPreset GetPreset();
-    CharacterData GetCharacterData();
-    void UpdateCharacter();
-}

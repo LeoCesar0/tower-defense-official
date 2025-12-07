@@ -28,6 +28,11 @@ public class PlayerCharacter : BaseCharacter, IControllable
     private float dashTime;
     private Vector2 dashDirection;
     
+    // Attack
+    private float lastAttackTime;
+    private float attackStateDuration = 0.3f;
+    private float attackStateStartTime;
+    
     #region Unity Lifecycle
     
     protected override void Start()
@@ -40,6 +45,19 @@ public class PlayerCharacter : BaseCharacter, IControllable
             availableAbilities = characterPreset.abilities;
             abilityCooldowns = new float[availableAbilities.Length];
         }
+        
+        // Initialize attack timer
+        float attackCooldown = GetAttackCooldown();
+        lastAttackTime = -attackCooldown;
+    }
+    
+    private float GetAttackCooldown()
+    {
+        if (GetAttackSpeed() > 0)
+        {
+            return 1f / GetAttackSpeed();
+        }
+        return 1f;
     }
     
     protected override void Update()
@@ -158,7 +176,12 @@ public class PlayerCharacter : BaseCharacter, IControllable
     {
         if (!CanAttack()) return;
         
+        float attackCooldown = GetAttackCooldown();
+        if (Time.time < lastAttackTime + attackCooldown) return;
+        
         ChangeState(CharacterState.Attacking);
+        lastAttackTime = Time.time;
+        attackStateStartTime = Time.time;
         
         float damage = GetAttackDamage();
         if (Random.Range(0f, 1f) < currentStats.criticalChance)
@@ -168,7 +191,6 @@ public class PlayerCharacter : BaseCharacter, IControllable
         
         target.TakeDamage(damage, DamageType.Physical);
         
-        // Play attack animation and effects
         SetAnimationTrigger("attack");
         PlayAttackEffects();
     }
@@ -194,7 +216,11 @@ public class PlayerCharacter : BaseCharacter, IControllable
     
     public override bool CanAttack()
     {
-        return !isDead && currentState != CharacterState.Attacking && currentState != CharacterState.Casting;
+        if (isDead || currentState == CharacterState.Attacking || currentState == CharacterState.Casting)
+            return false;
+        
+        float attackCooldown = GetAttackCooldown();
+        return Time.time >= lastAttackTime + attackCooldown;
     }
     
     public override float GetAttackDamage() => currentStats.attackDamage;
@@ -356,6 +382,12 @@ public class PlayerCharacter : BaseCharacter, IControllable
         
         // Handle landing
         if (IsGrounded() && (currentState == CharacterState.Falling || currentState == CharacterState.Jumping))
+        {
+            ChangeState(CharacterState.Idle);
+        }
+        
+        // Handle attack state transition
+        if (currentState == CharacterState.Attacking && Time.time >= attackStateStartTime + attackStateDuration)
         {
             ChangeState(CharacterState.Idle);
         }

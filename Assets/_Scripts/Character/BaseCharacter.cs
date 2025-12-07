@@ -70,6 +70,30 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
         {
             stateMachine = gameObject.AddComponent<CharacterStateMachine>();
         }
+        
+        SetupColliders();
+    }
+    
+    protected virtual void SetupColliders()
+    {
+        if (rb == null)
+        {
+            rb = GetComponent<Rigidbody2D>();
+            if (rb == null)
+            {
+                rb = gameObject.AddComponent<Rigidbody2D>();
+                rb.freezeRotation = true;
+                rb.gravityScale = 3f;
+            }
+        }
+        
+        Collider2D existingCollider = GetComponent<Collider2D>();
+        if (existingCollider == null)
+        {
+            CapsuleCollider2D capsuleCollider = gameObject.AddComponent<CapsuleCollider2D>();
+            capsuleCollider.size = new Vector2(0.8f, 1.6f);
+            capsuleCollider.offset = new Vector2(0f, 0.8f);
+        }
     }
     
     #endregion
@@ -78,6 +102,12 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     
     public virtual void InitializeFromPreset(CharacterPreset preset)
     {
+        if (preset == null || preset.characterData == null)
+        {
+            Debug.LogError("Cannot initialize character: preset or characterData is null");
+            return;
+        }
+        
         characterPreset = preset;
         currentStats = preset.characterData.ToCharacterStats();
         
@@ -134,7 +164,7 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     }
     
     public virtual bool IsDead() => isDead;
-    public virtual float GetHealthPercentage() => (float)currentStats.hp / currentStats.maxHp;
+    public virtual float GetHealthPercentage() => currentStats.maxHp > 0 ? (float)currentStats.hp / currentStats.maxHp : 0f;
     public virtual int GetCurrentHealth() => currentStats.hp;
     public virtual int GetMaxHealth() => currentStats.maxHp;
     
@@ -164,9 +194,25 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
         OnStatsChanged?.Invoke(currentStats);
     }
     
+    public virtual void RemoveEquipmentBonus(EquipmentBonus bonus)
+    {
+        var negativeBonus = new EquipmentBonus
+        {
+            attackDamageBonus = -bonus.attackDamageBonus,
+            magicDamageBonus = -bonus.magicDamageBonus,
+            attackSpeedBonus = -bonus.attackSpeedBonus,
+            physicalArmorBonus = -bonus.physicalArmorBonus,
+            magicArmorBonus = -bonus.magicArmorBonus,
+            criticalChanceBonus = -bonus.criticalChanceBonus
+        };
+        currentStats = currentStats.ApplyEquipmentBonus(negativeBonus);
+        OnStatsChanged?.Invoke(currentStats);
+    }
+    
     public virtual void LevelUp()
     {
         currentStats = currentStats.LevelUp();
+        OnLevelUp();
         OnStatsChanged?.Invoke(currentStats);
     }
     
@@ -213,13 +259,11 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     {
         if (buff == null) return;
         
-        // Check if buff already exists
         int existingIndex = activeBuffs.FindIndex(b => b == buff);
         if (existingIndex >= 0)
         {
             if (buff.isStackable)
             {
-                // Increase stack count (you might want to store stack counts separately)
                 OnBuffApplied?.Invoke(buff);
             }
         }
@@ -259,7 +303,7 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     
     public virtual void EquipItem(EquipmentData equipment)
     {
-        if (equipment == null || !CanEquipItem(equipment)) return;
+        if (equipment == null || !CanEquip(equipment)) return;
         
         // Unequip existing item in the same slot
         UnequipItem(equipment.equipmentSlot);
@@ -305,8 +349,11 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     
     public virtual EquipmentData GetEquippedItem(EquipmentSlot slot)
     {
-        equippedItems.TryGetValue(slot, out EquipmentData equipment);
-        return equipment;
+        if (equippedItems.TryGetValue(slot, out EquipmentData equipment))
+        {
+            return equipment;
+        }
+        return null;
     }
     
     public virtual EquipmentData[] GetAllEquippedItems()
@@ -320,7 +367,12 @@ public abstract class BaseCharacter : MonoBehaviour, ICharacter
     {
         if (equipment == null) return false;
         
-        return equipment.CanCharacterEquip(GetCharacterClass(), GetLevel());
+        return equipment.CanBeUsedBy(GetCharacterClass(), GetLevel());
+    }
+    
+    public virtual bool CanEquip(EquipmentData equipment)
+    {
+        return CanEquipItem(equipment);
     }
     
     #endregion
